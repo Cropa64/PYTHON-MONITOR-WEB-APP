@@ -91,13 +91,13 @@ botonSetEmailSender.grid(row=3,column=4)
 passSenderEntrada = Entry(root, width=35)
 passSenderEntrada.grid(row=4,column=3)
 
-def setEmailSender():
+def setPassSender():
     global EMAIL_PASSWORD
     EMAIL_PASSWORD = passSenderEntrada.get()
     lblCargaCorrecta["text"] = "Password emisor cargado"
 
-botonSetEmailSender = Button(root,text="Cargar emisor pass",command=setEmailSender)
-botonSetEmailSender.grid(row=4,column=4)
+botonSetPassSender = Button(root,text="Cargar emisor pass",command=setPassSender)
+botonSetPassSender.grid(row=4,column=4)
 
 hiloMonitoreo = threading.Thread(target=lambda: monitorear(urls))
 lblEnMonitoreo = Label(root, text="")
