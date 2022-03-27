@@ -16,17 +16,23 @@ exit_event = threading.Event()
 port = 465
 context = ssl.create_default_context()
 urls = []
+lblCargaCorrecta = Label(root,text="")
+lblCargaCorrecta.grid(row=5,column=3)
 
 urlEntrada = Entry(root, width=35)
 urlEntrada.grid(row=0,column=0)
 
 cont = 0
 botonesEstado = []
+lblsURL = []
 def agregarUrl():
     global cont
+    lblCargaCorrecta["text"] = ""
     urls.append(urlEntrada.get())
     lblPagina = Label(root,text=urlEntrada.get())
     lblPagina.grid(row=cont,column=1)
+    global lblsURL
+    lblsURL.append(lblPagina)
     global btnEstado
     btnEstado = Button(root,width=5,state=DISABLED,bg="grey")
     botonesEstado.append(btnEstado)
@@ -42,6 +48,7 @@ emailEntrada.grid(row=0,column=3)
 def setEmailReceiver():
     global EMAIL_RECEIVER
     EMAIL_RECEIVER = emailEntrada.get()
+    lblCargaCorrecta["text"] = "Email receptor cargado"
 
 botonSetEmailReceiver = Button(root,text="Cargar receptor",command=setEmailReceiver)
 botonSetEmailReceiver.grid(row=0,column=4)
@@ -52,6 +59,7 @@ smtpEntrada.grid(row=1,column=3)
 def setSmtpServer():
     global SMTP_SERVER
     SMTP_SERVER = smtpEntrada.get()
+    lblCargaCorrecta["text"] = "SMTP cargado"
 
 botonSetSmtpServer = Button(root,text="Cargar smtp",command=setSmtpServer)
 botonSetSmtpServer.grid(row=1,column=4)
@@ -62,6 +70,7 @@ portEntrada.grid(row=2,column=3)
 def setSmtpPort():
     global port
     port = portEntrada.get()
+    lblCargaCorrecta["text"] = "SMTP port cargado"
 
 botonSetSmtpPort = Button(root,text="Cargar puerto smtp",command=setSmtpPort)
 botonSetSmtpPort.grid(row=2,column=4)
@@ -72,6 +81,7 @@ emailSenderEntrada.grid(row=3,column=3)
 def setEmailSender():
     global EMAIL_ADDRESS
     EMAIL_ADDRESS = emailSenderEntrada.get()
+    lblCargaCorrecta["text"] = "Email emisor cargado"
 
 botonSetEmailSender = Button(root,text="Cargar emisor",command=setEmailSender)
 botonSetEmailSender.grid(row=3,column=4)
@@ -82,6 +92,7 @@ passSenderEntrada.grid(row=4,column=3)
 def setEmailSender():
     global EMAIL_PASSWORD
     EMAIL_PASSWORD = passSenderEntrada.get()
+    lblCargaCorrecta["text"] = "Password emisor cargado"
 
 botonSetEmailSender = Button(root,text="Cargar emisor pass",command=setEmailSender)
 botonSetEmailSender.grid(row=4,column=4)
@@ -90,6 +101,7 @@ hiloMonitoreo = threading.Thread(target=lambda: monitorear(urls))
 lblEnMonitoreo = Label(root, text="MONITOREO EN CURSO...")
 
 def comenzarMonitoreo():
+    lblCargaCorrecta["text"] = ""
     botonMonitorear["state"] = DISABLED
     botonReanudarMonitoreo["state"] = DISABLED
     botonPararMonitoreo["state"] = NORMAL
@@ -112,20 +124,27 @@ def reanudarMonitoreo():
     hiloMonitoreo = threading.Thread(target=lambda: monitorear(urls))
     hiloMonitoreo.start()
 
+def enviarMail(url):
+    with smtplib.SMTP_SSL(SMTP_SERVER,port,context=context) as server:
+        server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
+        asunto='SITIO WEB CAIDO'
+        cuerpo='El sitio web '+url+' se encuentra caido en este momento'
+        msg = f'Subject:{asunto}\n\n{cuerpo}'
+        server.sendmail(EMAIL_ADDRESS,EMAIL_RECEIVER,msg)
+
 def monitorear(urls):
     while True:
         i = 0
         for url in urls:
-            r = requests.get(url, timeout=5)
-            if r.status_code == 200:
-                with smtplib.SMTP_SSL(SMTP_SERVER,port,context=context) as server:
-                    server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
-                    asunto='SITIO WEB CAIDO'
-                    cuerpo='El sitio web '+url+' se encuentra caido en este momento'
-                    msg = f'Subject:{asunto}\n\n{cuerpo}'
-                    server.sendmail(EMAIL_ADDRESS,EMAIL_RECEIVER,msg)
-                botonesEstado[i]["bg"] = "green"
-            else:
+            try:
+                r = requests.get(url, timeout=5)
+                if r.status_code != 200:
+                    enviarMail(url)
+                    botonesEstado[i]["bg"] = "red"
+                else:
+                    botonesEstado[i]["bg"] = "green"
+            except:
+                enviarMail(url)
                 botonesEstado[i]["bg"] = "red"
             i+=1
         time.sleep(60)
