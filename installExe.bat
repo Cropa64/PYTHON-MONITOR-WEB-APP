@@ -1,7 +1,9 @@
 @echo off
 
-pyinstaller.exe --onefile --runtime-tmpdir=. --hidden-import win32timezone monitor.py
+pyinstaller.exe --onefile --windowed --runtime-tmpdir=. --hidden-import win32timezone monitorApp.py
 
-if exist dist\monitor.exe (
+if exist dist\monitorApp.exe (
 	echo Ejecutable creado correctamente
+) else (
+	echo Error al crear ejecutable
 )
