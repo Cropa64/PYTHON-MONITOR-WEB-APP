@@ -1,6 +1,6 @@
 @echo off
 
-pyinstaller.exe --onefile --windowed --runtime-tmpdir=. --hidden-import win32timezone monitorApp.py
+pyinstaller.exe --onefile --windowed --icon "C:\Users\messi\Documents\Curso programacion\Python\monitoreoWeb\MONITOR APP\eyeReduced.ico" --runtime-tmpdir=. --hidden-import win32timezone monitorApp.py
 
 if exist dist\monitorApp.exe (
 	echo Ejecutable creado correctamente

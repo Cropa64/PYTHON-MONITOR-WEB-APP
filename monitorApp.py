@@ -10,6 +10,7 @@ import threading
 
 root = Tk()
 root.title("Monitoreo de paginas web")
+root.iconbitmap('C:/Users/messi/Documents/Curso programacion/Python/monitoreoWeb/MONITOR APP/eyeReduced.ico')
 
 exit_event = threading.Event()
 
@@ -38,6 +39,7 @@ def agregarUrl():
     botonesEstado.append(btnEstado)
     btnEstado.grid(row=(cont+1),column=1)
     cont = cont + 2
+    lblEnMonitoreo.grid(row=(cont+1),column=1)
 
 botonIngresar = Button(root, text="Ingresar URL", command=agregarUrl)
 botonIngresar.grid(row=1,column=0)       
@@ -98,14 +100,14 @@ botonSetEmailSender = Button(root,text="Cargar emisor pass",command=setEmailSend
 botonSetEmailSender.grid(row=4,column=4)
 
 hiloMonitoreo = threading.Thread(target=lambda: monitorear(urls))
-lblEnMonitoreo = Label(root, text="MONITOREO EN CURSO...")
+lblEnMonitoreo = Label(root, text="")
 
 def comenzarMonitoreo():
     lblCargaCorrecta["text"] = ""
+    lblEnMonitoreo["text"] = "MONITOREO EN CURSO..."
     botonMonitorear["state"] = DISABLED
     botonReanudarMonitoreo["state"] = DISABLED
     botonPararMonitoreo["state"] = NORMAL
-    lblEnMonitoreo.grid(row=(cont+1),column=1)
     hiloMonitoreo.start()
 
 def detenerMonitoreo():
