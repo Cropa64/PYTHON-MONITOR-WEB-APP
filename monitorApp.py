@@ -10,11 +10,10 @@ import threading
 
 root = Tk()
 root.title("Monitoreo de paginas web")
-root.iconbitmap('C:/Users/messi/Documents/Curso programacion/Python/monitoreoWeb/MONITOR APP/eyeReduced.ico')
+root.iconbitmap('eyeReduced.ico')
 
 exit_event = threading.Event()
 
-port = 465
 context = ssl.create_default_context()
 urls = []
 lblCargaCorrecta = Label(root,text="")
