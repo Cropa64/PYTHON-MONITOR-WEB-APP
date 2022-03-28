@@ -102,9 +102,6 @@ lblEnMonitoreo = Label(root, text="MONITOREO EN CURSO...")
 
 hiloMonitoreo = threading.Thread(target=lambda: monitorear(urls))
 def comenzarMonitoreo():
-    global server
-    server = smtplib.SMTP_SSL(SMTP_SERVER,port,context=context)
-    server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
     lblCargaCorrecta["text"] = ""
     botonIngresar["state"] = DISABLED
     lblEnMonitoreo.grid(row=(cont+1),column=1)
@@ -116,7 +113,6 @@ def comenzarMonitoreo():
 def detenerMonitoreo():
     lblEnMonitoreo.grid_forget()
     botonIngresar["state"] = NORMAL
-    botonReanudarMonitoreo["state"] = NORMAL
     botonPararMonitoreo["state"] = DISABLED
     exit_event.set()
     for boton in botonesEstado:
@@ -144,6 +140,8 @@ botonReanudarMonitoreo = Button(root, text="Reanudar monitoreo", command=reanuda
 botonReanudarMonitoreo.grid(row=2,column=2)
 
 def enviarMail(url,i):
+    server = smtplib.SMTP_SSL(SMTP_SERVER,port,context=context)
+    server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
     asunto='SITIO WEB CAIDO'
     cuerpo='El sitio web '+url+' se encuentra caido en este momento'
     msg = f'Subject:{asunto}\n\n{cuerpo}'
@@ -151,6 +149,7 @@ def enviarMail(url,i):
         for email in EMAIL_RECEIVER:
             server.sendmail(EMAIL_ADDRESS,email,msg)
         mailEnviadoArray[i] = True
+    server.close()
 
 def monitorear(urls):
     while True:
@@ -174,9 +173,9 @@ def monitorear(urls):
                 enviarMail(url,i)
             i+=1
         botonPararMonitoreo["state"] = NORMAL
-        time.sleep(20)
-
+        time.sleep(10)
         if exit_event.is_set():
+            botonReanudarMonitoreo["state"] = NORMAL
             break
     
 root.mainloop()
