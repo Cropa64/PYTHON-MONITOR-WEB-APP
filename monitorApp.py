@@ -25,6 +25,7 @@ urlEntrada.grid(row=0,column=0)
 cont = 0
 mailEnviadoArray = []
 botonesEstado = []
+lblsURL = []
 def agregarUrl():
     global cont
     lblCargaCorrecta["text"] = ""
@@ -32,6 +33,7 @@ def agregarUrl():
     mailEnviadoArray.append(False)
     lblPagina = Label(root,text=urlEntrada.get())
     lblPagina.grid(row=cont,column=1)
+    lblsURL.append(lblPagina)
     global btnEstado
     btnEstado = Button(root,width=5,state=DISABLED,bg="grey")
     botonesEstado.append(btnEstado)
@@ -39,7 +41,18 @@ def agregarUrl():
     cont = cont + 2
 
 botonIngresar = Button(root, text="Ingresar URL", command=agregarUrl)
-botonIngresar.grid(row=1,column=0)       
+botonIngresar.grid(row=1,column=0)
+
+def limpiarURLs():
+    for i in range(0,len(lblsURL)):
+        lblsURL[i].destroy()
+        botonesEstado[i].destroy()
+
+espacio = Label(root, text="")
+espacio.grid(row=2,column=0)
+
+botonLimpiarURL = Button(root, text="Limpiar URLs", command=limpiarURLs)
+botonLimpiarURL.grid(row=3,column=0)
 
 emailEntrada = Entry(root, width=35)
 emailEntrada.grid(row=0,column=3)
