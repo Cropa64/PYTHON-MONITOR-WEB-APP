@@ -1,22 +1,25 @@
+from asyncio.windows_events import NULL
 import smtplib
 import ssl
 import time
 import requests
 from tkinter import *
 import threading
+import logging
 
 root = Tk()
 root.title("Monitoreo de paginas web")
 root.iconbitmap('eyeReduced.ico')
-
 exit_event = threading.Event()
-
 context = ssl.create_default_context()
+
+logging.basicConfig(filename='monitor.log',level=logging.WARNING,format='%(asctime)s:%(levelname)s:%(message)s')
 
 lblCargaCorrecta = Label(root,text="")
 lblCargaCorrecta.grid(row=5,column=3)
 
 urlEntrada = Entry(root, width=35)
+urlEntrada.insert(END,"https://")
 urlEntrada.grid(row=0,column=0)
 
 cont = 0
@@ -95,6 +98,7 @@ botonSetSmtpPort.grid(row=2,column=4)
 emailSenderEntrada = Entry(root, width=35)
 emailSenderEntrada.grid(row=3,column=3)
 
+EMAIL_ADDRESS = ""
 def setEmailSender():
     global EMAIL_ADDRESS
     EMAIL_ADDRESS = emailSenderEntrada.get()
@@ -106,6 +110,7 @@ botonSetEmailSender.grid(row=3,column=4)
 passSenderEntrada = Entry(root, width=35)
 passSenderEntrada.grid(row=4,column=3)
 
+EMAIL_PASSWORD = ""
 def setPassSender():
     global EMAIL_PASSWORD
     EMAIL_PASSWORD = passSenderEntrada.get()
@@ -128,6 +133,7 @@ def comenzarMonitoreo():
     hiloMonitoreo.start()
 
 def detenerMonitoreo():
+    logging.info("Monitoreo detenido")
     lblEnMonitoreo.grid_forget()
     botonIngresar["state"] = NORMAL
     botonPararMonitoreo["state"] = DISABLED
@@ -169,31 +175,34 @@ def enviarMail(url,i):
     if mailEnviadoArray[i] == False:
         for email in EMAIL_RECEIVER:
             server.sendmail(EMAIL_ADDRESS,email,msg)
+            logging.info('Mail enviado a {}'.format(email))
         mailEnviadoArray[i] = True
     server.close()
 
 def monitorear(urls):
     while True:
-        print("hilo")
+        logging.info('pooleando...')
         i = 0
         for url in urls:
             try:
                 botonPararMonitoreo["state"] = DISABLED
                 r = requests.get(url, timeout=5)
                 if r.status_code != 200:
-                    print("bad")
+                    logging.warning('{} : {}'.format(url,r.status_code))
                     botonesEstado[i]["bg"] = "red"
-                    enviarMail(url,i)
+                    if EMAIL_ADDRESS != NULL and EMAIL_PASSWORD != NULL and EMAIL_RECEIVER != NULL:
+                        enviarMail(url,i)
                 else:
-                    print("ok")
+                    logging.info('{} : {}'.format(url,r.status_code))
                     botonesEstado[i]["bg"] = "green"
                     mailEnviadoArray[i] = False
                 botonesEstado[i]["fg"] = "red"
                 botonesEstado[i]["text"] = r.status_code
             except:
-                print("except")
+                logging.warning('{}'.format(url))
                 botonesEstado[i]["bg"] = "red"
-                enviarMail(url,i)
+                if EMAIL_ADDRESS != "" and EMAIL_PASSWORD != "" and EMAIL_RECEIVER:
+                        enviarMail(url,i)
             i+=1
         botonPararMonitoreo["state"] = NORMAL
         time.sleep(10)
