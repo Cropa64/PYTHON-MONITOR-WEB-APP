@@ -1,6 +1,3 @@
-from cProfile import run
-from cgitb import text
-import email
 import smtplib
 import ssl
 import time
@@ -15,7 +12,7 @@ root.iconbitmap('eyeReduced.ico')
 exit_event = threading.Event()
 
 context = ssl.create_default_context()
-urls = []
+
 lblCargaCorrecta = Label(root,text="")
 lblCargaCorrecta.grid(row=5,column=3)
 
@@ -26,6 +23,7 @@ cont = 0
 mailEnviadoArray = []
 botonesEstado = []
 lblsURL = []
+urls = []
 def agregarUrl():
     global cont
     lblCargaCorrecta["text"] = ""
@@ -35,7 +33,7 @@ def agregarUrl():
     lblPagina.grid(row=cont,column=1)
     lblsURL.append(lblPagina)
     global btnEstado
-    btnEstado = Button(root,width=5,state=DISABLED,bg="grey")
+    btnEstado = Button(root,width=5,state=DISABLED,fg="blue",bg="grey")
     botonesEstado.append(btnEstado)
     btnEstado.grid(row=(cont+1),column=1)
     cont = cont + 2
@@ -44,9 +42,15 @@ botonIngresar = Button(root, text="Ingresar URL", command=agregarUrl)
 botonIngresar.grid(row=1,column=0)
 
 def limpiarURLs():
-    for i in range(0,len(lblsURL)):
+    for i in range(0,len(urls)):
         lblsURL[i].destroy()
         botonesEstado[i].destroy()
+    urls.clear()
+    mailEnviadoArray.clear()
+    lblsURL.clear()
+    botonesEstado.clear()
+    global cont
+    cont = 0
 
 espacio = Label(root, text="")
 espacio.grid(row=2,column=0)
@@ -120,23 +124,28 @@ def comenzarMonitoreo():
     botonMonitorear["state"] = DISABLED
     botonReanudarMonitoreo["state"] = DISABLED
     botonPararMonitoreo["state"] = NORMAL
+    botonLimpiarURL["state"] = DISABLED
     hiloMonitoreo.start()
 
 def detenerMonitoreo():
     lblEnMonitoreo.grid_forget()
     botonIngresar["state"] = NORMAL
     botonPararMonitoreo["state"] = DISABLED
+    botonLimpiarURL["state"] = NORMAL
     exit_event.set()
     for boton in botonesEstado:
         boton["bg"] = "grey"
+        boton["text"] = ""
     for i in range(0,len(mailEnviadoArray)):
         mailEnviadoArray[i] = False
 
 def reanudarMonitoreo():
     lblEnMonitoreo.grid(row=(cont+1),column=1)
+    lblCargaCorrecta["text"] = ""
     botonReanudarMonitoreo["state"] = DISABLED
     botonPararMonitoreo["state"] = NORMAL
     botonIngresar["state"] = DISABLED
+    botonLimpiarURL["state"] = DISABLED
     global hiloMonitoreo
     hiloMonitoreo = threading.Thread(target=lambda: monitorear(urls))
     hiloMonitoreo.start()
@@ -179,6 +188,8 @@ def monitorear(urls):
                     print("ok")
                     botonesEstado[i]["bg"] = "green"
                     mailEnviadoArray[i] = False
+                botonesEstado[i]["fg"] = "red"
+                botonesEstado[i]["text"] = r.status_code
             except:
                 print("except")
                 botonesEstado[i]["bg"] = "red"
