@@ -36,7 +36,7 @@ def agregarUrl():
     lblPagina.grid(row=cont,column=1)
     lblsURL.append(lblPagina)
     global btnEstado
-    btnEstado = Button(root,width=5,state=DISABLED,fg="blue",bg="grey")
+    btnEstado = Button(root,width=5,disabledforeground="black",bg="grey",state=DISABLED)
     botonesEstado.append(btnEstado)
     btnEstado.grid(row=(cont+1),column=1)
     cont = cont + 2
@@ -55,11 +55,8 @@ def limpiarURLs():
     global cont
     cont = 0
 
-espacio = Label(root, text="")
-espacio.grid(row=2,column=0)
-
 botonLimpiarURL = Button(root, text="Limpiar URLs", command=limpiarURLs)
-botonLimpiarURL.grid(row=3,column=0)
+botonLimpiarURL.grid(row=2,column=0)
 
 emailEntrada = Entry(root, width=35)
 emailEntrada.grid(row=0,column=3)
@@ -167,21 +164,24 @@ botonReanudarMonitoreo = Button(root, text="Reanudar monitoreo", command=reanuda
 botonReanudarMonitoreo.grid(row=2,column=2)
 
 def enviarMail(url,i):
-    server = smtplib.SMTP_SSL(SMTP_SERVER,port,context=context)
-    server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
-    asunto='SITIO WEB CAIDO'
-    cuerpo='El sitio web '+url+' se encuentra caido en este momento'
-    msg = f'Subject:{asunto}\n\n{cuerpo}'
-    if mailEnviadoArray[i] == False:
-        for email in EMAIL_RECEIVER:
-            server.sendmail(EMAIL_ADDRESS,email,msg)
-            logging.info('Mail enviado a {}'.format(email))
-        mailEnviadoArray[i] = True
-    server.close()
+    if EMAIL_ADDRESS != "" and EMAIL_PASSWORD != "" and EMAIL_RECEIVER and SMTP_SERVER != "" and port:
+        server = smtplib.SMTP_SSL(SMTP_SERVER,port,context=context)
+        server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
+        asunto='SITIO WEB CAIDO'
+        cuerpo='El sitio web '+url+' se encuentra caido en este momento'
+        msg = f'Subject:{asunto}\n\n{cuerpo}'
+        if mailEnviadoArray[i] == False:
+            for email in EMAIL_RECEIVER:
+                server.sendmail(EMAIL_ADDRESS,email,msg)
+                logging.info('Mail enviado a {}'.format(email))
+            mailEnviadoArray[i] = True
+        server.close()
 
 def monitorear(urls):
     while True:
         logging.info('pooleando...')
+        for botonEstado in botonesEstado:
+            botonEstado["text"] = ""
         i = 0
         for url in urls:
             try:
@@ -190,8 +190,7 @@ def monitorear(urls):
                 if r.status_code != 200:
                     logging.warning('{} : {}'.format(url,r.status_code))
                     botonesEstado[i]["bg"] = "red"
-                    if EMAIL_ADDRESS != NULL and EMAIL_PASSWORD != NULL and EMAIL_RECEIVER != NULL:
-                        enviarMail(url,i)
+                    enviarMail(url,i)
                 else:
                     logging.info('{} : {}'.format(url,r.status_code))
                     botonesEstado[i]["bg"] = "green"
@@ -201,8 +200,8 @@ def monitorear(urls):
             except:
                 logging.warning('{}'.format(url))
                 botonesEstado[i]["bg"] = "red"
-                if EMAIL_ADDRESS != "" and EMAIL_PASSWORD != "" and EMAIL_RECEIVER:
-                        enviarMail(url,i)
+                botonesEstado[i]["text"] = "ERROR"
+                enviarMail(url,i)
             i+=1
         botonPararMonitoreo["state"] = NORMAL
         time.sleep(10)
