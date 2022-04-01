@@ -190,6 +190,7 @@ def monitorear(urls):
                 if r.status_code != 200:
                     logging.warning('{} : {}'.format(url,r.status_code))
                     botonesEstado[i]["bg"] = "red"
+                    botonesEstado[i]["text"] = r.status_code
                     enviarMail(url,i)
                 else:
                     logging.info('{} : {}'.format(url,r.status_code))
