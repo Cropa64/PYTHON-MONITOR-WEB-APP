@@ -1,4 +1,5 @@
 from asyncio.windows_events import NULL
+from win10toast import ToastNotifier
 import smtplib
 import ssl
 import time
@@ -24,6 +25,7 @@ urlEntrada.grid(row=0,column=0)
 
 cont = 0
 mailEnviadoArray = []
+notificacionMostrada = []
 botonesEstado = []
 lblsURL = []
 urls = []
@@ -32,6 +34,7 @@ def agregarUrl():
     lblCargaCorrecta["text"] = ""
     urls.append(urlEntrada.get())
     mailEnviadoArray.append(False)
+    notificacionMostrada.append(False)
     lblPagina = Label(root,text=urlEntrada.get())
     lblPagina.grid(row=cont,column=1)
     lblsURL.append(lblPagina)
@@ -50,6 +53,7 @@ def limpiarURLs():
         botonesEstado[i].destroy()
     urls.clear()
     mailEnviadoArray.clear()
+    notificacionMostrada.clear()
     lblsURL.clear()
     botonesEstado.clear()
     global cont
@@ -141,6 +145,7 @@ def detenerMonitoreo():
         boton["text"] = ""
     for i in range(0,len(mailEnviadoArray)):
         mailEnviadoArray[i] = False
+        notificacionMostrada[i] = False
 
 def reanudarMonitoreo():
     lblEnMonitoreo.grid(row=(cont+1),column=1)
@@ -162,6 +167,18 @@ botonPararMonitoreo.grid(row=1,column=2)
 
 botonReanudarMonitoreo = Button(root, text="Reanudar monitoreo", command=reanudarMonitoreo, state=DISABLED)
 botonReanudarMonitoreo.grid(row=2,column=2)
+
+def mostrarNotificacion(url, i):
+    if(notificacionMostrada[i] == False):
+        toast = ToastNotifier()
+        toast.show_toast(
+            "Sitio WEB caido",
+            "El sitio "+url+" se encuentra fuera de linea",
+            duration = 20,
+            icon_path = "errorSitio.ico",
+            threaded = True,
+        )
+        notificacionMostrada[i] = True
 
 def enviarMail(url,i):
     if EMAIL_ADDRESS != "" and EMAIL_PASSWORD != "" and EMAIL_RECEIVER and SMTP_SERVER != "" and port:
@@ -192,10 +209,12 @@ def monitorear(urls):
                     botonesEstado[i]["bg"] = "red"
                     botonesEstado[i]["text"] = r.status_code
                     enviarMail(url,i)
+                    mostrarNotificacion(url,i)
                 else:
                     logging.info('{} : {}'.format(url,r.status_code))
                     botonesEstado[i]["bg"] = "green"
                     mailEnviadoArray[i] = False
+                    notificacionMostrada[i] = False
                 botonesEstado[i]["fg"] = "red"
                 botonesEstado[i]["text"] = r.status_code
             except:
@@ -203,6 +222,7 @@ def monitorear(urls):
                 botonesEstado[i]["bg"] = "red"
                 botonesEstado[i]["text"] = "ERROR"
                 enviarMail(url,i)
+                mostrarNotificacion(url,i)
             i+=1
         botonPararMonitoreo["state"] = NORMAL
         time.sleep(10)
